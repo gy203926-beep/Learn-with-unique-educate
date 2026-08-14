@@ -1,7 +1,9 @@
 {
-  "name": "Unique Educate",
+  "name": "Learn with Unique Educate",
   "short_name": "Unique Educate",
+  "description": "An interactive learning and education application built for students.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f0f2f5",
   "theme_color": "#1d3557",
@@ -10,12 +12,14 @@
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
