@@ -1021,6 +1021,275 @@
         loadMaterials();
 
     });
+    /* =========================
+       NAVIGATION & PAGES
+    ========================= */
+
+    function openPage(pageId) {
+        document.querySelectorAll(".page").forEach(page => {
+            page.classList.remove("active");
+        });
+        document.getElementById(pageId).classList.add("active");
+        window.scrollTo(0, 0);
+    }
+
+    function checkAuthAndOpen(pageId) {
+        if (!currentUser) {
+            alert("कृपया पहले लॉगिन करें!");
+            openPage("auth-page");
+        } else {
+            openPage(pageId);
+        }
+    }
 
 
     /* =========================
+       GOOGLE LOGIN
+    ========================= */
+
+    async function loginWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+
+            const userRef = db.collection("users").doc(user.uid);
+            const doc = await userRef.get();
+
+            if (!doc.exists) {
+                await userRef.set({
+                    name: user.displayName || "Google User",
+                    email: user.email,
+                    role: "student",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            alert("लॉगिन सफल रहा!");
+            openPage("home-page");
+        } catch (error) {
+            alert("लॉगिन विफल: " + error.message);
+        }
+    }
+
+
+    /* =========================
+       EMAIL AUTH & TOGGLE
+    ========================= */
+
+    function toggleAuthMode() {
+        isSignUpMode = !isSignUpMode;
+        const header = document.getElementById("auth-header");
+        const submitBtn = document.getElementById("auth-submit-btn");
+        const toggleText = document.getElementById("auth-toggle-text");
+        const toggleBtn = document.getElementById("auth-toggle-btn");
+        const nameGroup = document.getElementById("name-group");
+        const adminCodeGroup = document.getElementById("admin-code-group");
+
+        if (isSignUpMode) {
+            header.innerText = "Create New Account";
+            submitBtn.innerText = "Register";
+            toggleText.innerText = "Already have an account?";
+            toggleBtn.innerText = "Login";
+            nameGroup.style.display = "block";
+            adminCodeGroup.style.display = "block";
+        } else {
+            header.innerText = "Sign In to Continue";
+            submitBtn.innerText = "Login with Email";
+            toggleText.innerText = "Don't have an account?";
+            toggleBtn.innerText = "Register";
+            nameGroup.style.display = "none";
+            adminCodeGroup.style.display = "none";
+        }
+    }
+
+    async function handleAuthSubmit() {
+        const email = document.getElementById("auth-email").value.trim();
+        const password = document.getElementById("auth-password").value.trim();
+
+        if (!email || !password) {
+            alert("कृपया ईमेल और पासवर्ड भरें।");
+            return;
+        }
+
+        if (isSignUpMode) {
+            const name = document.getElementById("auth-name").value.trim();
+            const adminCode = document.getElementById("auth-admin-code").value.trim();
+            let role = "student";
+
+            if (adminCode === ADMIN_SECRET) {
+                role = "admin";
+            }
+
+            try {
+                const res = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection("users").doc(res.user.uid).set({
+                    name: name || "Student",
+                    email: email,
+                    role: role,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("पंजीकरण सफल रहा!");
+                openPage("home-page");
+            } catch (error) {
+                alert("एरर: " + error.message);
+            }
+        } else {
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                alert("लॉगिन सफल!");
+                openPage("home-page");
+            } catch (error) {
+                alert("लॉगिन विफल: " + error.message);
+            }
+        }
+    }
+
+
+    /* =========================
+       PHONE OTP AUTH
+    ========================= */
+
+    function sendOTP() {
+        const phoneNumber = document.getElementById("phone-number").value.trim();
+        if (!phoneNumber) {
+            alert("कृपया वैध फोन नंबर दर्ज करें (+91 के साथ)।");
+            return;
+        }
+
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                'size': 'invisible'
+            });
+        }
+
+        const appVerifier = window.recaptchaVerifier;
+        auth.signInWithPhoneNumber(phoneNumber, appVerifier)
+            .then((result) => {
+                confirmationResult = result;
+                document.getElementById("otp-group").style.display = "block";
+                alert("OTP भेज दिया गया है!");
+            })
+            .catch((error) => {
+                alert("OTP भेजने में समस्या: " + error.message);
+            });
+    }
+
+    function verifyOTP() {
+        const code = document.getElementById("otp-code").value.trim();
+        if (!code) {
+            alert("कृपया 6 अंकों का OTP दर्ज करें।");
+            return;
+        }
+
+        confirmationResult.confirm(code).then(async (result) => {
+            const user = result.user;
+            const userRef = db.collection("users").doc(user.uid);
+            const doc = await userRef.get();
+
+            if (!doc.exists) {
+                await userRef.set({
+                    name: "Phone User",
+                    phone: user.phoneNumber,
+                    role: "student",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            alert("फोन द्वारा लॉगिन सफल!");
+            openPage("home-page");
+        }).catch((error) => {
+            alert("गलत OTP, कृपया पुनः प्रयास करें।");
+        });
+    }
+
+
+    /* =========================
+       LOGOUT
+    ========================= */
+
+    function handleLogout() {
+        auth.signOut().then(() => {
+            alert("सफलतापूर्वक लॉग आउट हो गए।");
+            openPage("home-page");
+        });
+    }
+
+
+    /* =========================
+       STUDY MATERIAL (LOAD & ADD)
+    ========================= */
+
+    async function loadMaterials() {
+        try {
+            const snapshot = await db.collection("materials").orderBy("createdAt", "desc").get();
+            let pdfHtml = "";
+            let videoHtml = "";
+            let testHtml = "";
+
+            if (snapshot.empty) {
+                const emptyMsg = '<p style="text-align:center;color:#888;">कोई सामग्री उपलब्ध नहीं है।</p>';
+                document.getElementById("pdf-list").innerHTML = emptyMsg;
+                document.getElementById("video-list").innerHTML = emptyMsg;
+                document.getElementById("test-list").innerHTML = emptyMsg;
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const item = doc.data();
+                const card = `
+                    <div class="item-card">
+                        <div>
+                            <strong>${item.title}</strong>
+                            <p style="font-size:11px;color:#666;margin-top:2px;">Type: ${item.type.toUpperCase()}</p>
+                        </div>
+                        <a href="${item.url}" target="_blank" class="btn" style="width:auto;padding:6px 12px;font-size:12px;margin:0;">Open</a>
+                    </div>
+                `;
+
+                if (item.type === "pdf") pdfHtml += card;
+                else if (item.type === "video") videoHtml += card;
+                else if (item.type === "test") testHtml += card;
+            });
+
+            document.getElementById("pdf-list").innerHTML = pdfHtml || '<p style="text-align:center;color:#888;">कोई PDF नोट्स नहीं हैं।</p>';
+            document.getElementById("video-list").innerHTML = videoHtml || '<p style="text-align:center;color:#888;">कोई वीडियो लेक्चर नहीं हैं।</p>';
+            document.getElementById("test-list").innerHTML = testHtml || '<p style="text-align:center;color:#888;">कोई मॉक टेस्ट नहीं हैं।</p>';
+
+        } catch (e) {
+            console.log("Error loading materials:", e);
+        }
+    }
+
+    async function addStudyMaterial() {
+        const type = document.getElementById("admin-content-type").value;
+        const title = document.getElementById("admin-title").value.trim();
+        const url = document.getElementById("admin-url").value.trim();
+
+        if (!title || !url) {
+            alert("कृपया शीर्षक और यूआरएल दोनों भरें।");
+            return;
+        }
+
+        try {
+            await db.collection("materials").add({
+                type: type,
+                title: title,
+                url: url,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert("सामग्री सफलतापूर्वक पब्लिश हो गई!");
+            document.getElementById("admin-title").value = "";
+            document.getElementById("admin-url").value = "";
+            loadMaterials();
+            openPage("home-page");
+        } catch (error) {
+            alert("पब्लिश करने में त्रुटि: " + error.message);
+        }
+    }
+
+</script>
+</body>
+</html>
