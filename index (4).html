@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Learn With Unique Educate</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1d3557">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Unique Educate">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #1a1d20;
+            padding-bottom: 80px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1d3557, #457b9d);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-badge {
+            font-size: 11px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .banner {
+            background: linear-gradient(135deg, #e63946, #457b9d);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(230,57,70,0.25);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 20px 0 10px;
+            color: #1d3557;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .card {
+            background: white;
+            padding: 18px 12px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+            border: 1px solid #edf2f7;
+        }
+
+        .card:active {
+            transform: scale(0.97);
+        }
+
+        .card i {
+            font-size: 26px;
+            color: #1d3557;
+            margin-bottom: 8px;
+        }
+
+        .card h4 {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: #1d3557;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-google {
+            background: #db4437;
+        }
+
+        .btn-phone {
+            background: #25d366;
+        }
+
+        .btn-success {
+            background: #2a9d8f;
+        }
+
+        .auth-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .item-card {
+            background: white;
+            padding: 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #1d3557;
+        }
+
+        .admin-only {
+            display: none;
+        }
+
+        .admin-box {
+            background: #e0e7ff;
+            border: 1px dashed #4338ca;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 12px;
+            color: #888;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            border-top: 1px solid #ddd;
+            z-index: 200;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #6c757d;
+            font-size: 11px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .install-box {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .install-box button {
+            background: #1d3557;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="app-title">
+        <i class="fa-solid fa-graduation-cap"></i>
+        Unique Educate
+    </div>
+
+    <div id="user-badge" class="user-badge">
+        Guest
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- PWA INSTALL -->
+    <div id="install-box" class="install-box">
+        <h4 style="margin-bottom:8px;">
+            📱 Unique Educate App
+        </h4>
+
+        <p style="font-size:12px;color:#666;margin-bottom:10px;">
+            Unique Educate को अपने फोन में App की तरह Install करें।
+        </p>
+
+        <button id="install-btn">
+            <i class="fa-solid fa-download"></i>
+            Install App
+        </button>
+    </div>
+
+    <!-- HOME -->
+    <div id="home-page" class="page active">
+
+        <div class="banner">
+            <h2>Welcome to Unique Educate 🚀</h2>
+
+            <p style="font-size:12px;">
+                Class 1 to 12th & Competitive Exam Prep
+            </p>
+        </div>
+
+        <div id="admin-quick-access"
+             class="admin-only admin-box">
+
+            <p style="font-weight:600;color:#4338ca;font-size:12px;">
+                <i class="fa-solid fa-user-shield"></i>
+                Admin Control Active
+            </p>
+
+            <button
+                class="btn btn-success"
+                style="padding:8px;font-size:12px;margin-top:5px;"
+                onclick="openPage('admin-page')">
+
+                + Add New Material
+
+            </button>
+        </div>
+
+        <div class="section-title">
+            <i class="fa-solid fa-school"></i>
+            School Education
+        </div>
+
+        <div class="grid">
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('pdf-page')">
+
+                <i class="fa-solid fa-child"
+                   style="color:#e63946;"></i>
+
+                <h4>Class 1st - 5th</h4>
+
+            </div>
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('pdf-page')">
+
+                <i class="fa-solid fa-book"
+                   style="color:#457b9d;"></i>
+
+                <h4>Class 6th - 8th</h4>
+
+            </div>
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('pdf-page')">
+
+                <i class="fa-solid fa-pen-ruler"
+                   style="color:#2a9d8f;"></i>
+
+                <h4>Class 9th & 10th</h4>
+
+            </div>
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('pdf-page')">
+
+                <i class="fa-solid fa-flask"
+                   style="color:#e76f51;"></i>
+
+                <h4>Class 11th & 12th</h4>
+
+            </div>
+
+        </div>
+
+        <div class="section-title">
+            <i class="fa-solid fa-folder-open"></i>
+            Study Material & Tests
+        </div>
+
+        <div class="grid">
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('pdf-page')">
+
+                <i class="fa-solid fa-file-pdf"
+                   style="color:#e63946;"></i>
+
+                <h4>PDF Notes</h4>
+
+            </div>
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('video-page')">
+
+                <i class="fa-solid fa-video"
+                   style="color:#2a9d8f;"></i>
+
+                <h4>Video Lectures</h4>
+
+            </div>
+
+            <div class="card"
+                 onclick="checkAuthAndOpen('test-page')">
+
+                <i class="fa-solid fa-file-signature"
+                   style="color:#e76f51;"></i>
+
+                <h4>Mock Tests</h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- AUTH -->
+    <div id="auth-page" class="page">
+
+        <div class="auth-card">
+
+            <h3 id="auth-header"
+                style="margin-bottom:15px;text-align:center;">
+
+                Sign In to Continue
+
+            </h3>
+
+            <button class="btn btn-google"
+                    onclick="loginWithGoogle()">
+
+                <i class="fa-brands fa-google"></i>
+
+                Sign in with Google
+
+            </button>
+
+            <div class="divider">
+                OR USE PHONE NUMBER
+            </div>
+
+            <div id="phone-login-box">
+
+                <div class="input-group">
+
+                    <label>Phone Number</label>
+
+                    <input
+                        type="tel"
+                        id="phone-number"
+                        placeholder="+91 9876543210">
+
+                </div>
+
+                <div id="recaptcha-container"></div>
+
+                <button
+                    class="btn btn-phone"
+                    id="send-otp-btn"
+                    onclick="sendOTP()">
+
+                    <i class="fa-solid fa-paper-plane"></i>
+
+                    Send OTP
+
+                </button>
+
+                <div id="otp-group"
+                     style="display:none;margin-top:10px;">
+
+                    <div class="input-group">
+
+                        <label>
+                            Enter 6-Digit OTP
+                        </label>
+
+                        <input
+                            type="number"
+                            id="otp-code"
+                            placeholder="123456">
+
+                    </div>
+
+                    <button
+                        class="btn btn-success"
+                        onclick="verifyOTP()">
+
+                        <i class="fa-solid fa-check"></i>
+
+                        Verify & Login
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="divider">
+                OR EMAIL
+            </div>
+
+            <div class="input-group"
+                 id="name-group"
+                 style="display:none;">
+
+                <label>Full Name</label>
+
+                <input
+                    type="text"
+                    id="auth-name"
+                    placeholder="Name">
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Email Address</label>
+
+                <input
+                    type="email"
+                    id="auth-email"
+                    placeholder="example@mail.com">
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Password</label>
+
+                <input
+                    type="password"
+                    id="auth-password"
+                    placeholder="••••••••">
+
+            </div>
+
+            <div class="input-group"
+                 id="admin-code-group"
+                 style="display:none;">
+
+                <label>Admin Code (Optional)</label>
+
+                <input
+                    type="password"
+                    id="auth-admin-code"
+                    placeholder="Enter Admin Code">
+
+            </div>
+
+            <button
+                class="btn"
+                id="auth-submit-btn"
+                onclick="handleAuthSubmit()">
+
+                Login with Email
+
+            </button>
+
+            <p style="text-align:center;font-size:12px;margin-top:15px;">
+
+                <span id="auth-toggle-text">
+                    Don't have an account?
+                </span>
+
+                <a href="javascript:void(0)"
+                   onclick="toggleAuthMode()"
+                   style="color:#1d3557;font-weight:bold;"
+                   id="auth-toggle-btn">
+
+                    Register
+
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- PDF -->
+    <div id="pdf-page" class="page">
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-file-pdf"></i>
+
+            PDF Notes
+
+        </div>
+
+        <div id="pdf-list"
+             class="item-list">
+
+            <p style="text-align:center;color:#888;">
+                Loading...
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- VIDEO -->
+    <div id="video-page" class="page">
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-video"></i>
+
+            Video Lectures
+
+        </div>
+
+        <div id="video-list"
+             class="item-list">
+
+            <p style="text-align:center;color:#888;">
+                Loading...
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- TEST -->
+    <div id="test-page" class="page">
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-vial"></i>
+
+            Mock Tests
+
+        </div>
+
+        <div id="test-list"
+             class="item-list">
+
+            <p style="text-align:center;color:#888;">
+                Loading...
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- ADMIN -->
+    <div id="admin-page" class="page">
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-user-gear"></i>
+
+            Admin Panel
+
+        </div>
+
+        <div class="auth-card">
+
+            <h4>
+                Upload Study Material
+            </h4>
+
+            <div class="input-group"
+                 style="margin-top:10px;">
+
+                <label>
+                    Material Type
+                </label>
+
+                <select id="admin-content-type">
+
+                    <option value="pdf">
+                        PDF Note
+                    </option>
+
+                    <option value="video">
+                        Video Lecture
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>
+                    Title
+                </label>
+
+                <input
+                    type="text"
+                    id="admin-title"
+                    placeholder="e.g. Science Chapter 1">
+
+            </div>
+
+            <div class="input-group">
+
+                <label>
+                    URL / Drive Link
+                </label>
+
+                <input
+                    type="text"
+                    id="admin-url"
+                    placeholder="https://...">
+
+            </div>
+
+            <button
+                class="btn btn-success"
+                onclick="addStudyMaterial()">
+
+                Publish Material
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+
+    <div class="nav-item"
+         onclick="openPage('home-page')">
+
+        <i class="fa-solid fa-house"></i>
+        Home
+
+    </div>
+
+    <div class="nav-item"
+         onclick="checkAuthAndOpen('pdf-page')">
+
+        <i class="fa-solid fa-file-pdf"></i>
+        Notes
+
+    </div>
+
+    <div class="nav-item"
+         onclick="checkAuthAndOpen('test-page')">
+
+        <i class="fa-solid fa-pen-to-square"></i>
+        Tests
+
+    </div>
+
+    <div class="nav-item"
+         id="auth-nav-item"
+         onclick="openPage('auth-page')">
+
+        <i class="fa-solid fa-user"></i>
+
+        <span id="nav-user-text">
+            Account
+        </span>
+
+    </div>
+
+</div>
+
+<script>
+
+    /* =========================
+       PWA INSTALL
+    ========================= */
+
+    let deferredPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+
+        event.preventDefault();
+
+        deferredPrompt = event;
+
+        const box = document.getElementById("install-box");
+
+        if (box) {
+            box.style.display = "block";
+        }
+
+    });
+
+    const installBtn =
+        document.getElementById("install-btn");
+
+    if (installBtn) {
+
+        installBtn.addEventListener("click", async () => {
+
+            if (!deferredPrompt) {
+
+                alert(
+                    "अगर Install विकल्प नहीं दिख रहा है तो Chrome के Menu से 'Add to Home screen' चुनें।"
+                );
+
+                return;
+            }
+
+            deferredPrompt.prompt();
+
+            const result =
+                await deferredPrompt.userChoice;
+
+            deferredPrompt = null;
+
+            document.getElementById("install-box")
+                .style.display = "none";
+
+        });
+
+    }
+
+    window.addEventListener("appinstalled", () => {
+
+        const box =
+            document.getElementById("install-box");
+
+        if (box) {
+            box.style.display = "none";
+        }
+
+        console.log("Unique Educate installed");
+
+    });
+
+
+    /* =========================
+       SERVICE WORKER
+    ========================= */
+
+    if ("serviceWorker" in navigator) {
+
+        window.addEventListener("load", () => {
+
+            navigator.serviceWorker
+                .register("service-worker.js")
+                .then(() => {
+
+                    console.log(
+                        "Unique Educate PWA Ready"
+                    );
+
+                })
+                .catch((error) => {
+
+                    console.log(
+                        "Service Worker Error:",
+                        error
+                    );
+
+                });
+
+        });
+
+    }
+
+
+    /* =========================
+       FIREBASE
+    ========================= */
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyDCVfvXnMNJQLGWZQsT6XBqvcVkltpkMuA",
+    authDomain: "learn-with-unique-educate.firebaseapp.com",
+    projectId: "learn-with-unique-educate",
+    storageBucket: "learn-with-unique-educate.firebasestorage.app",
+    messagingSenderId: "64004571178",
+    appId: "1:64004571178:web:8b528a06ec0084aa458353",
+    measurementId: "G-WXEGX4Y38V"
+};
+
+
+    if (!firebase.apps.length) {
+
+        firebase.initializeApp(
+            firebaseConfig
+        );
+
+    }
+
+
+    const auth = firebase.auth();
+
+    const db = firebase.firestore();
+
+
+    let currentUser = null;
+
+    let userRole = "guest";
+
+    let isSignUpMode = false;
+
+    let confirmationResult = null;
+
+
+    const ADMIN_SECRET = "UNIQUE123";
+
+
+    /* =========================
+       AUTH STATE
+    ========================= */
+
+    auth.onAuthStateChanged(async (user) => {
+
+        if (user) {
+
+            currentUser = user;
+
+            try {
+
+                const doc =
+                    await db
+                        .collection("users")
+                        .doc(user.uid)
+                        .get();
+
+                if (doc.exists) {
+
+                    const data = doc.data();
+
+                    userRole =
+                        data.role || "student";
+
+                    document
+                        .getElementById("user-badge")
+                        .innerText =
+                        `${data.name || "User"} (${userRole.toUpperCase()})`;
+
+                }
+
+            } catch (e) {
+
+                console.log(e);
+
+            }
+
+
+            document
+                .getElementById("nav-user-text")
+                .innerText = "Logout";
+
+
+            document
+                .getElementById("auth-nav-item")
+                .onclick = handleLogout;
+
+
+            if (userRole === "admin") {
+
+                document
+                    .querySelectorAll(".admin-only")
+                    .forEach(el => {
+
+                        el.style.display = "block";
+
+                    });
+
+            }
+
+        } else {
+
+            currentUser = null;
+
+            userRole = "guest";
+
+            document
+                .getElementById("user-badge")
+                .innerText = "Guest";
+
+            document
+                .getElementById("nav-user-text")
+                .innerText = "Account";
+
+            document
+                .getElementById("auth-nav-item")
+                .onclick =
+                () => openPage("auth-page");
+
+
+            document
+                .querySelectorAll(".admin-only")
+                .forEach(el => {
+
+                    el.style.display = "none";
+
+                });
+
+        }
+
+        loadMaterials();
+
+    });
+
+
+    /* =========================
